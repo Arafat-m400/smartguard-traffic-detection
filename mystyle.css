@@ -1,0 +1,304 @@
+    /* Layout CSS */
+      body,
+      html {
+        height: 100%;
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background-color: #0e0e0e;
+        color: #eee;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      body.light-mode {
+        background-color: #084939;
+        color: #222;
+      }
+
+      .wrapper {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      #sidebar {
+        width: 220px;
+        background: #084939;
+        color: #060606;
+        flex-shrink: 0;
+        padding-top: 40px;
+        transition: all 0.3s ease;
+      }
+
+      #sidebar.collapsed {
+        margin-left: -220px;
+      }
+
+      body.light-mode #sidebar {
+        background: #084939;
+        color: #141414;
+      }
+
+      #sidebar ul.list-unstyled {
+        padding-left: 0;
+      }
+
+      #sidebar ul li {
+        padding: 15px 30px;
+        font-weight: normal;
+      }
+
+      #sidebar ul li.active,
+      #sidebar ul li:hover {
+        background: #0d3865;
+        cursor: pointer;
+      }
+
+      #sidebar ul li a {
+        color: inherit;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+      }
+
+      #sidebar ul li a .fa {
+        margin-right: 12px;
+        font-size: 16px;
+      }
+
+      #sidebar .footer {
+        position: absolute;
+        bottom: 0;
+        width: 220px;
+        left: 0px;
+        padding: 10px 30px;
+        font-size: 0.8rem;
+        background: rgba(0, 0, 0, 0.2);
+      }
+      body.light-mode #sidebar .footer {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+      }
+
+      #content-area {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        
+        height: 100vh;
+        background: inherit;
+        color: inherit;
+        padding: 0 20px 20px 20px;
+      }
+
+      .main-navbar {
+        display: flex;
+        align-items: center;
+        background: #111;
+        color: #eee;
+        padding: 0.5rem 1rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+        user-select: none;
+        justify-content: space-between;
+        
+      }
+
+      body.light-mode .main-navbar {
+        background: #f1f1f1;
+        color: rgb(15, 15, 15);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+
+      .toggle-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: inherit;
+        cursor: pointer;
+      }
+
+      .navbar-brand img {
+        height: 30px;
+      }
+
+      .main-navbar > div:last-child {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .main-navbar a.text-reset {
+        color: inherit;
+        font-size: 1.3rem;
+        position: relative;
+      }
+
+      .badge.bg-danger {
+        position: absolute;
+        top: -5px;
+        right: -10px;
+        font-size: 0.6rem;
+        padding: 0.2em 0.35em;
+      }
+
+      .main-navbar img.rounded-circle {
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+      }
+
+      .dropdown-menu {
+        min-width: 150px;
+      }
+
+      .main-content {
+        flex-grow: 1;
+        margin-top: 1rem;
+        overflow-y: auto;
+      }
+
+      .main-content h1 {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      @media (max-width: 767px) {
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: #222;
+        border-radius: 10px;
+        padding: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+        color: #eee;
+        display: flex;
+        flex-direction: column;
+        min-height: 380px;
+      }
+
+      body.light-mode .card {
+        background: #c9c2bc;
+        color: #0c0c0c;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .card h5 {
+        margin-bottom: 1rem;
+      }
+
+      /* Traffic Detection Components */
+      #videoWrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 300px;
+      }
+      
+      video, canvas#overlay {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block;
+      }
+      
+      canvas#overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+
+      #output {
+        background: #333;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        min-height: 40px;
+        text-align: center;
+      }
+      body.light-mode #output {
+        background: #ddd;
+        color: #222;
+      }
+
+      .buttons {
+        width: 100%;
+        margin: 0 auto 15px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 1rem;
+        cursor: pointer;
+        border-radius: 6px;
+        border: none;
+        color: white;
+        transition: background 0.3s;
+        flex: 1 1 120px;
+        max-width: 150px;
+      }
+      #startBtn { background: #190464; }
+      #stopBtn { background: #d90303; }
+      #toggleSoundBtn { background: #62a138; color: #0a0a0a; }
+      #toggleModeBtn { background: #084939; }
+
+      /* Fixed Log Panel with proper overflow */
+      #logPanel {
+        width: 100%;
+        height: 300px; /* Fixed height */
+        background: #111;
+        color: #eee;
+        padding: 10px;
+        border-radius: 8px;
+        overflow-y: auto; /* Scrollable */
+        font-family: monospace;
+        font-size: 0.9rem;
+        display: flex;
+        flex-direction: column-reverse; /* Newest logs at bottom */
+      }
+      
+      #logPanel-content {
+        margin-top: auto; /* Pushes content to bottom */
+      }
+      
+      body.light-mode #logPanel {
+        background: #eee;
+        color: #222;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+        min-height: 300px;
+        border-radius: 8px;
+      }
+
+      footer {
+        padding: 1rem 0;
+        text-align: center;
+        background: #111;
+        color: #eee;
+        font-size: 0.9rem;
+        margin-top: auto;
+      }
+
+      body.light-mode footer {
+        background: #084939;
+        color: white;
+      }
+    
