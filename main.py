@@ -60,7 +60,7 @@ location_data = []  # You can inject GPS later
 # Detection Endpoint
 # -----------------------------
 @app.post("/detect/")
-async def detect(file: UploadFile = File(...)):
+async def detect(file: UploadFile = File(...), latitude: float = -2.6068, longitude: float = 29.7354):
     content = await file.read()
     npimg = np.frombuffer(content, np.uint8)
     frame = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
@@ -83,8 +83,8 @@ async def detect(file: UploadFile = File(...)):
         sign_last_seen[class_name] = now.isoformat()
         hourly_distribution[now.hour] += 1
 
-        # Fake location (you can replace with GPS)
-        location_data.append([-2.6068, 29.7354, 0.5])
+        # real location data from GPS (or use dummy data for testing)
+        location_data.append([latitude, longitude, confidence])
 
         detections.append({
             "class_name": class_name,
@@ -94,6 +94,15 @@ async def detect(file: UploadFile = File(...)):
 
     detected_classes = list(set([d['class_name'] for d in detections]))
     warnings = [class_warnings.get(c, c) for c in detected_classes]
+
+    # Speak the first warning aloud
+
+    if warnings:
+        try:
+            engine.say(warnings[0])
+            engine.runAndWait()
+        except Exception:
+            pass
 
     return {"detections": detections, "warnings": warnings}
 
