@@ -95,14 +95,20 @@ async def detect(file: UploadFile = File(...), latitude: float = -2.6068, longit
     detected_classes = list(set([d['class_name'] for d in detections]))
     warnings = [class_warnings.get(c, c) for c in detected_classes]
 
-    # Speak the first warning aloud
 
+    # Speak warning in separate thread to avoid async conflict
     if warnings:
-        try:
-            engine.say(warnings[0])
-            engine.runAndWait()
-        except Exception:
-            pass
+        import threading
+        def speak(text):
+            try:
+                speaker = pyttsx3.init()
+                speaker.setProperty('rate', 150)
+                speaker.say(text)
+                speaker.runAndWait()
+                speaker.stop()
+            except Exception:
+                pass
+        threading.Thread(target=speak, args=(warnings[0],), daemon=True).start()
 
     return {"detections": detections, "warnings": warnings}
 
