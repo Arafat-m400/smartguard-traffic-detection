@@ -7,14 +7,15 @@ from ultralytics import YOLO
 import pyttsx3
 from datetime import datetime
 from collections import defaultdict
-from datetime import datetime
 from zoneinfo import ZoneInfo
 from fastapi import Query
-
+import csv
+import os
+import threading
 
 app = FastAPI()
 
-# Allow frontend access (adjust allow_origins for production)
+# Allow frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,10 +25,6 @@ app.add_middleware(
 
 # Load the YOLO model
 model = YOLO("best.pt")
-
-# Optional: TTS engine
-engine = pyttsx3.init()
-engine.setProperty('rate', 150)
 
 # Define your custom messages
 class_warnings = {
@@ -48,13 +45,11 @@ class_warnings = {
     "Speed Limit 120": "Speed limit 120 detected. Reduce your speed to 120 kilometers per hour."
 }
 
-# -----------------------------
 # Analytics tracking variables
-# -----------------------------
 sign_counts = defaultdict(int)
 sign_last_seen = {}
 hourly_distribution = [0] * 24
-location_data = []  # You can inject GPS later
+location_data = []
 
 # -----------------------------
 # Detection Endpoint
@@ -70,21 +65,32 @@ async def detect(file: UploadFile = File(...), latitude: float = -2.6068, longit
     detections = []
     now = datetime.now(ZoneInfo("Africa/Kigali"))
 
-
     for box in results.boxes:
         class_id = int(box.cls)
         class_name = class_names[class_id]
-
         xyxy = box.xyxy[0].cpu().numpy().tolist()
-        #confidence = float(box.conf.cpu().numpy())
         confidence = box.conf.item()
+        
         # Update analytics
         sign_counts[class_name] += 1
         sign_last_seen[class_name] = now.isoformat()
         hourly_distribution[now.hour] += 1
-
-        # real location data from GPS (or use dummy data for testing)
         location_data.append([latitude, longitude, confidence])
+
+        # Brick 2 - Offline SD Card Logging (CSV)
+        log_file = "detection_log.csv"
+        file_exists = os.path.isfile(log_file)
+        with open(log_file, mode='a', newline='') as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(["Timestamp", "Sign", "Confidence", "Latitude", "Longitude"])
+            writer.writerow([
+                now.strftime("%Y-%m-%d %H:%M:%S"),
+                class_name,
+                round(confidence, 2),
+                latitude,
+                longitude
+            ])
 
         detections.append({
             "class_name": class_name,
@@ -95,10 +101,8 @@ async def detect(file: UploadFile = File(...), latitude: float = -2.6068, longit
     detected_classes = list(set([d['class_name'] for d in detections]))
     warnings = [class_warnings.get(c, c) for c in detected_classes]
 
-
-    # Speak warning in separate thread to avoid async conflict
+    # Speak warning in separate thread
     if warnings:
-        import threading
         def speak(text):
             try:
                 speaker = pyttsx3.init()
@@ -120,10 +124,9 @@ async def get_analytics(reset: bool = Query(False)):
     global sign_counts, sign_last_seen, hourly_distribution, location_data
     
     if reset:
-        # Clear/reset all analytics data
         sign_counts.clear()
         sign_last_seen.clear()
-        hourly_distribution[:] = [0] * 24  # reset list in place
+        hourly_distribution[:] = [0] * 24
         location_data.clear()
         print("Analytics data has been reset!")
 
@@ -142,7 +145,7 @@ async def get_analytics(reset: bool = Query(False)):
 
     return JSONResponse(content={
         "signFrequency": [{"sign": k, "count": v} for k, v in sign_counts.items()],
-        "locations": location_data[-100:],  # latest 100
+        "locations": location_data[-100:],
         "timeDistribution": {
             "hours": list(range(24)),
             "counts": hourly_distribution
