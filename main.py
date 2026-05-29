@@ -52,6 +52,80 @@ hourly_distribution = [0] * 24
 location_data = []
 
 # -----------------------------
+# Pedestrian Detection at Zebra Crossing
+# -----------------------------
+@app.post("/pedestrian-warning/")
+async def pedestrian_warning(pedestrian_data: dict):
+    """
+    Called when pedestrians are detected near a zebra crossing.
+    Enforces slow speed and logs the event.
+    """
+    # Extract data from JSON body
+    pedestrian_count = pedestrian_data.get("pedestrian_count")
+    zebra_nearby = pedestrian_data.get("zebra_nearby")
+    latitude = pedestrian_data.get("latitude")
+    longitude = pedestrian_data.get("longitude")
+    
+    now = datetime.now(ZoneInfo("Africa/Kigali"))
+    
+    # Log to pedestrian_events.csv
+    ped_file = "pedestrian_events.csv"
+    file_exists = os.path.isfile(ped_file)
+    
+    with open(ped_file, mode='a', newline='') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["Timestamp", "Pedestrians", "Zebra Nearby", "Latitude", "Longitude", "Action Taken"])
+        
+        action = "Speed enforced to 15 km/h" if zebra_nearby else "Warning only - no zebra"
+        
+        writer.writerow([
+            now.strftime("%Y-%m-%d %H:%M:%S"),
+            pedestrian_count,
+            zebra_nearby,
+            latitude,
+            longitude,
+            action
+        ])
+    
+    # Also log to main detection log
+    log_file = "detection_log.csv"
+    with open(log_file, mode='a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            now.strftime("%Y-%m-%d %H:%M:%S"),
+            f"PEDESTRIAN: {pedestrian_count} people",
+            f"Zebra nearby: {zebra_nearby}",
+            "",
+            latitude,
+            longitude
+        ])
+    
+    # Speak pedestrian warning
+    def speak_pedestrian():
+        try:
+            speaker = pyttsx3.init()
+            speaker.setProperty('rate', 150)
+            if zebra_nearby:
+                speaker.say(f"Warning! {pedestrian_count} pedestrians detected at zebra crossing. Reducing speed.")
+            else:
+                speaker.say(f"Caution! {pedestrian_count} pedestrians detected near road.")
+            speaker.runAndWait()
+            speaker.stop()
+        except Exception:
+            pass
+    
+    threading.Thread(target=speak_pedestrian, daemon=True).start()
+    
+    return {
+        "status": "pedestrian_warning",
+        "pedestrians": pedestrian_count,
+        "zebra_nearby": zebra_nearby,
+        "action": "speed_reduced" if zebra_nearby else "warning_only",
+        "timestamp": now.isoformat()
+    }
+
+# -----------------------------
 # Detection Endpoint
 # -----------------------------
 @app.post("/detect/")

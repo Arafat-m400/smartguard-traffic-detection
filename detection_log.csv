@@ -8,3 +8,7 @@ Timestamp,Sign,Confidence,Latitude,Longitude
 2026-05-22 10:33:06,Speed Limit 40,0.67,-2.6068,29.7354
 2026-05-22 10:33:46,Speed Limit 40,0.67,-2.6068,29.7354
 2026-05-29 08:34:51,VIOLATION: Speed Limit 40,Actual: 68 / Limit: 40,28,-2.6068,29.7354
+2026-05-29 08:38:45,VIOLATION: Speed Limit 40,Actual: 68 / Limit: 40,28,-2.6068,29.7354
+2026-05-29 08:52:52,PEDESTRIAN: 3 people,Zebra nearby: True,,-2.6068,29.7354
+2026-05-29 08:54:06,VIOLATION: Speed Limit 40,Actual: 68 / Limit: 40,28,-2.6068,29.7354
+2026-05-29 13:34:33,Speed Limit 50,0.99,-2.6068,29.7354
