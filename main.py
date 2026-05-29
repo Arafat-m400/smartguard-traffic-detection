@@ -117,6 +117,86 @@ async def detect(file: UploadFile = File(...), latitude: float = -2.6068, longit
     return {"detections": detections, "warnings": warnings}
 
 # -----------------------------
+# Violation Logging Endpoint
+# -----------------------------
+@app.post("/violation/")
+async def log_violation(violation_data: dict):
+    """
+    Logs speeding violations with evidence.
+    Called by the frontend when speed limit is exceeded.
+    """
+    # Extract data from JSON body
+    speed_limit = violation_data.get("speed_limit")
+    actual_speed = violation_data.get("actual_speed")
+    latitude = violation_data.get("latitude")
+    longitude = violation_data.get("longitude")
+    sign_detected = violation_data.get("sign_detected", "Unknown")
+    
+    now = datetime.now(ZoneInfo("Africa/Kigali"))
+    
+    # Calculate how much over the limit
+    over_limit = actual_speed - speed_limit
+    
+    # Create violation log CSV
+    violation_file = "violations_log.csv"
+    file_exists = os.path.isfile(violation_file)
+    
+    with open(violation_file, mode='a', newline='') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow([
+                "Timestamp", "Sign Detected", "Speed Limit", 
+                "Actual Speed", "Over By", "Latitude", "Longitude", "Evidence File"
+            ])
+        
+        # Generate evidence filename
+        evidence_filename = f"violation_{now.strftime('%Y%m%d_%H%M%S')}.jpg"
+        
+        writer.writerow([
+            now.strftime("%Y-%m-%d %H:%M:%S"),
+            sign_detected,
+            speed_limit,
+            actual_speed,
+            round(over_limit, 1),
+            latitude,
+            longitude,
+            evidence_filename
+        ])
+    
+    # Also log to main detection log with violation flag
+    log_file = "detection_log.csv"
+    with open(log_file, mode='a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            now.strftime("%Y-%m-%d %H:%M:%S"),
+            f"VIOLATION: {sign_detected}",
+            f"Actual: {actual_speed} / Limit: {speed_limit}",
+            round(over_limit, 1),
+            latitude,
+            longitude
+        ])
+    
+    # Speak violation warning
+    def speak_violation():
+        try:
+            speaker = pyttsx3.init()
+            speaker.setProperty('rate', 150)
+            speaker.say(f"Warning! You are {round(over_limit)} kilometers over the {speed_limit} kilometer speed limit. Violation logged.")
+            speaker.runAndWait()
+            speaker.stop()
+        except Exception:
+            pass
+    
+    threading.Thread(target=speak_violation, daemon=True).start()
+    
+    return {
+        "status": "violation_logged",
+        "message": f"Exceeded {speed_limit} km/h limit by {round(over_limit, 1)} km/h",
+        "evidence_file": evidence_filename,
+        "timestamp": now.isoformat()
+    }
+
+# -----------------------------
 # Real-Time Analytics Endpoint
 # -----------------------------
 @app.get("/analytics")
